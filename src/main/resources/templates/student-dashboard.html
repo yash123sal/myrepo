@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Student Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
+
+.topbar {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    padding: 0 30px; height: 65px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.topbar-brand { display: flex; align-items: center; gap: 12px; }
+.topbar-brand img { width: 38px; height: 38px; border-radius: 50%; border: 2px solid #4facfe; }
+.topbar-brand span { color: white; font-size: 18px; font-weight: 700; }
+.topbar-right { display: flex; align-items: center; gap: 15px; }
+
+.hero-banner {
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+    padding: 30px; color: white; position: relative; overflow: hidden;
+}
+.hero-banner::before {
+    content: ''; position: absolute; right: -50px; top: -50px;
+    width: 200px; height: 200px; background: rgba(79,172,254,0.1); border-radius: 50%;
+}
+.hero-banner::after {
+    content: ''; position: absolute; right: 80px; bottom: -30px;
+    width: 120px; height: 120px; background: rgba(79,172,254,0.08); border-radius: 50%;
+}
+.student-avatar-large {
+    width: 80px; height: 80px; border-radius: 50%;
+    border: 4px solid #4facfe; box-shadow: 0 0 20px rgba(79,172,254,0.4);
+}
+
+.content-area { padding: 25px 30px; }
+
+.info-card {
+    background: white; border-radius: 15px; padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08); height: 100%;
+}
+.info-card h6 { font-weight: 700; color: #1a1a2e; margin-bottom: 15px; font-size: 15px; }
+
+.profile-item {
+    display: flex; align-items: center; padding: 10px 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+.profile-item:last-child { border-bottom: none; }
+.profile-item-icon {
+    width: 35px; height: 35px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: white; margin-right: 12px; flex-shrink: 0;
+}
+.profile-item-label { font-size: 11px; color: #999; }
+.profile-item-value { font-size: 14px; font-weight: 600; color: #333; }
+
+.course-card {
+    background: white; border-radius: 12px; padding: 18px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08); transition: transform 0.3s;
+    border-left: 4px solid #4facfe; margin-bottom: 12px;
+}
+.course-card:hover { transform: translateX(5px); }
+.course-card h6 { font-weight: 700; color: #1a1a2e; margin-bottom: 8px; }
+.course-meta { display: flex; gap: 15px; font-size: 12px; color: #888; }
+.course-meta span i { margin-right: 4px; }
+
+.enroll-btn {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    border: none; border-radius: 8px; padding: 6px 16px;
+    color: white; font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: all 0.3s;
+}
+.enroll-btn:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(79,172,254,0.4); }
+
+.result-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #f8f9fa; border-radius: 10px; padding: 10px 15px;
+    margin-bottom: 8px; width: 100%;
+}
+
+.section-card {
+    background: white; border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 20px;
+}
+.section-header {
+    padding: 18px 25px; border-bottom: 1px solid #f0f0f0;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.section-header h6 { margin: 0; font-weight: 700; color: #1a1a2e; }
+
+.form-control, .form-select {
+    border: 2px solid #e8e8e8; border-radius: 10px; padding: 10px 15px; font-size: 14px;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #4facfe; box-shadow: 0 0 0 0.2rem rgba(79,172,254,0.15);
+}
+
+.btn-enroll-main {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    border: none; border-radius: 10px; padding: 11px 25px;
+    color: white; font-weight: 600; width: 100%; transition: all 0.3s;
+}
+.btn-enroll-main:hover { box-shadow: 0 5px 15px rgba(79,172,254,0.4); }
+
+.logout-btn {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3);
+    color: white; border-radius: 8px; padding: 8px 18px;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s;
+}
+.logout-btn:hover { background: rgba(255,255,255,0.2); }
+
+.alert-toast {
+    position: fixed; top: 20px; right: 20px; z-index: 9999;
+    min-width: 280px; border-radius: 12px; padding: 15px 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none;
+}
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+    <div class="topbar-brand">
+        <img src="https://ui-avatars.com/api/?name=Student&background=4facfe&color=fff&size=38" alt="Student">
+        <span>EduPortal</span>
+    </div>
+    <div class="topbar-right">
+        <form method="post" th:action="@{/logout}" style="margin:0">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="logout-btn"><i class="fas fa-sign-out-alt me-1"></i>Logout</button>
+        </form>
+    </div>
+</div>
+
+<!-- Hero Banner -->
+<div class="hero-banner">
+    <div class="d-flex align-items-center gap-4">
+        <img src="https://ui-avatars.com/api/?name=Student+User&background=4facfe&color=fff&size=80&bold=true" class="student-avatar-large" alt="Student" id="heroAvatar">
+        <div>
+            <h4 class="mb-1" id="heroName">Welcome, Student!</h4>
+            <p class="mb-1" style="color:rgba(255,255,255,0.7);font-size:14px"><i class="fas fa-id-card me-2"></i>Student ID: <span id="heroId" class="badge" style="background:rgba(79,172,254,0.3)">-</span></p>
+            <p class="mb-0" style="color:rgba(255,255,255,0.7);font-size:13px"><i class="fas fa-envelope me-2"></i><span id="heroEmail">-</span></p>
+        </div>
+    </div>
+</div>
+
+<div class="content-area">
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Available Courses -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h6><i class="fas fa-graduation-cap me-2" style="color:#4facfe"></i>Available Courses</h6>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="loadCourses()"><i class="fas fa-sync me-1"></i>Refresh</button>
+                </div>
+                <div class="p-3" id="courseList">
+                    <div class="text-center py-4 text-muted">Loading courses...</div>
+                </div>
+            </div>
+
+            <!-- Enroll Form -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h6><i class="fas fa-plus-circle me-2" style="color:#43e97b"></i>Enroll in Course</h6>
+                </div>
+                <div class="p-4">
+                    <form id="enrollForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" style="font-size:13px">Select Course</label>
+                                <select class="form-select" id="courseId" required>
+                                    <option value="">Choose a course...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <button type="submit" class="btn-enroll-main">
+                                    <i class="fas fa-check me-2"></i>Enroll Now
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Profile Card -->
+            <div class="info-card mb-4">
+                <h6><i class="fas fa-user-circle me-2" style="color:#667eea"></i>My Profile</h6>
+                <div class="text-center mb-3">
+                    <img src="https://ui-avatars.com/api/?name=Student+User&background=4facfe&color=fff&size=70&bold=true" 
+                         class="rounded-circle" style="width:70px;height:70px;border:3px solid #4facfe" id="profileAvatar" alt="Profile">
+                </div>
+                <div class="profile-item">
+                    <div class="profile-item-icon" style="background:#667eea"><i class="fas fa-hashtag"></i></div>
+                    <div><div class="profile-item-label">Student ID</div><div class="profile-item-value" id="profileId">-</div></div>
+                </div>
+                <div class="profile-item">
+                    <div class="profile-item-icon" style="background:#4facfe"><i class="fas fa-user"></i></div>
+                    <div><div class="profile-item-label">Full Name</div><div class="profile-item-value" id="studentName">-</div></div>
+                </div>
+                <div class="profile-item">
+                    <div class="profile-item-icon" style="background:#43e97b"><i class="fas fa-envelope"></i></div>
+                    <div><div class="profile-item-label">Email</div><div class="profile-item-value" id="studentEmail" style="font-size:12px">-</div></div>
+                </div>
+                <div class="profile-item">
+                    <div class="profile-item-icon" style="background:#f5576c"><i class="fas fa-phone"></i></div>
+                    <div><div class="profile-item-label">Phone</div><div class="profile-item-value" id="studentPhone">-</div></div>
+                </div>
+            </div>
+
+            <!-- My Results -->
+            <div class="info-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0"><i class="fas fa-chart-bar me-2" style="color:#f5576c"></i>My Results</h6>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="loadMyResults()"><i class="fas fa-sync"></i></button>
+                </div>
+                <div id="resultList">
+                    <div class="text-center py-3 text-muted" style="font-size:13px">No results yet</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="alert-toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function showToast(msg, type) {
+    let t = document.getElementById('toast');
+    t.className = 'alert-toast alert alert-' + (type || 'success');
+    t.innerHTML = '<i class="fas fa-' + (type === 'danger' ? 'times' : 'check') + '-circle me-2"></i>' + msg;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
+}
+
+$(document).ready(function() { loadCourses(); loadProfile(); loadMyResults(); });
+
+function loadProfile() {
+    $.get('/students/profile', function(data) {
+        if(data) {
+            let name = data.name || 'Student';
+            $('#profileId').text(data.studentId);
+            $('#studentName').text(name);
+            $('#studentEmail').text(data.email);
+            $('#studentPhone').text(data.phone);
+            $('#heroName').text('Welcome, ' + name + '!');
+            $('#heroId').text(data.studentId);
+            $('#heroEmail').text(data.email);
+            let avatarUrl = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=4facfe&color=fff&size=80&bold=true';
+            $('#heroAvatar').attr('src', avatarUrl);
+            $('#profileAvatar').attr('src', avatarUrl.replace('size=80', 'size=70'));
+            $('#enrollStudentId').val(data.studentId);
+        }
+    });
+}
+
+function loadCourses() {
+    $.get('/admin/courses', function(data) {
+        let html = '', options = '<option value="">Choose a course...</option>';
+        if(data.length === 0) {
+            html = '<div class="text-center py-4 text-muted">No courses available</div>';
+        } else {
+            data.forEach(c => {
+                html += `<div class="course-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6>${c.courseName}</h6>
+                            <div class="course-meta">
+                                <span><i class="fas fa-clock"></i>${c.duration}</span>
+                                <span><i class="fas fa-rupee-sign"></i>${c.fees}</span>
+                            </div>
+                        </div>
+                        <button class="enroll-btn" onclick="quickEnroll(${c.courseId},'${c.courseName}')">
+                            <i class="fas fa-plus me-1"></i>Enroll
+                        </button>
+                    </div>
+                </div>`;
+                options += `<option value="${c.courseId}">${c.courseName} (₹${c.fees})</option>`;
+            });
+        }
+        $('#courseList').html(html);
+        $('#courseId').html(options);
+    });
+}
+
+function quickEnroll(courseId, courseName) {
+    $.get('/students/profile', function(data) {
+        if(!data || !data.studentId) { showToast('Profile not loaded yet!', 'danger'); return; }
+        $.ajax({ url: '/students/enroll', type: 'POST', contentType: 'application/json',
+            data: JSON.stringify({ studentId: data.studentId, courseId: courseId }),
+            success: function() { showToast('Enrolled in ' + courseName + ' successfully!'); },
+            error: function() { showToast('Already enrolled or enrollment failed!', 'danger'); }
+        });
+    });
+}
+
+function loadMyResults() {
+    $.get('/students/myResults', function(data) {
+        let html = '';
+        if(data.length === 0) {
+            html = '<div class="text-center py-3 text-muted" style="font-size:13px">No results yet</div>';
+        } else {
+            data.forEach(r => {
+                html += `<div class="result-badge">
+                    <div class="progress flex-grow-1" style="height:8px">
+                        <div class="progress-bar bg-${getGradeColor(r.grade)}" style="width:${r.marks}%"></div>
+                    </div>
+                    <span style="font-size:13px;font-weight:600">${r.marks}/100</span>
+                    <span class="badge bg-${getGradeColor(r.grade)}">${r.grade}</span>
+                </div>`;
+            });
+        }
+        $('#resultList').html(html);
+    });
+}
+
+$('#enrollForm').submit(function(e) {
+    e.preventDefault();
+    $.get('/students/profile', function(data) {
+        let courseName = $('#courseId option:selected').text();
+        $.ajax({ url: '/students/enroll', type: 'POST', contentType: 'application/json',
+            data: JSON.stringify({ studentId: data.studentId, courseId: $('#courseId').val() }),
+            success: function() { showToast('Enrolled in ' + courseName + '!'); $('#courseId').val(''); },
+            error: function() { showToast('Already enrolled or failed!', 'danger'); }
+        });
+    });
+});
+
+function getGradeColor(g) {
+    return {A:'success',B:'primary',C:'info',D:'warning',F:'danger'}[g] || 'secondary';
+}
+</script>
+</body>
+</html>
